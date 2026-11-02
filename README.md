@@ -23,14 +23,7 @@ This project is a **continuation of the original `a0221at` ESPHome integration b
 
 Flamedodger's component was the first to make the A0221AT usable with ESPHome at all: at a time when ESPHome only supported the auto-output variant (`a02yyuw`), the original project worked out the manual-UART trigger approach, got real sensor frames parsed and published to Home Assistant, and documented the whole tank-level use case — including hardware details like the sensor running reliably at 3.3 V on ESP32 despite its 5 V rating. It was published under MIT, which is what makes this rewrite possible.
 
-This repository keeps that architecture (trigger on `update()`, parse on `loop()`, millimetre frames) and hardens it against the manufacturer's official interface specification. Nothing here would exist without the original.
-
-**What v1 got right (and v2 keeps):**
-
-- the trigger-based polling model for the manual-UART variant, when no built-in platform fitted
-- the tank-level / fill-percentage use case, with Home Assistant telemetry
-- the practical hardware notes: 3.3 V operation on ESP32, "avoid the PWM version, avoid the auto-UART version"
-- MIT licensing
+This repository keeps that architecture (trigger on `update()`, parse on `loop()`, millimetre frames) and hardens it against the manufacturer's official interface specification. Nothing here would exist without the original. It was made with AI.
 
 **What v2 changes:**
 
