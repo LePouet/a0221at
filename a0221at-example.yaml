@@ -1,0 +1,74 @@
+# Example configuration for the A0221AT (DYP-A02YYT(W)) UART-controlled
+# ultrasonic distance sensor.
+#
+# Copy the parts you need into your device YAML. The component itself lives
+# in components/a0221at of this repository.
+
+external_components:
+  # From GitHub:
+  - source: github://LePouet/a0221at@main
+    components: [a0221at]
+  # Or, when your YAML file sits next to this repository's components/ folder:
+  # - source:
+  #     type: local
+  #     path: components
+  #   components: [a0221at]
+
+esphome:
+  name: a0221at-demo
+  friendly_name: A0221AT demo
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+uart:
+  id: uart_sensor
+  tx_pin: GPIO17        # -> sensor RX (trigger input, required)
+  rx_pin: GPIO16        # <- sensor TX (data output)
+  baud_rate: 9600
+
+sensor:
+  # NOTE: only ONE a0221at sensor may live on a given uart: bus -- multiple
+  # instances would compete for the same incoming bytes. Derive extra units
+  # (cm, tank level, ...) with sensor.template.publish, as shown below.
+
+  # Raw distance in millimetres, hidden from Home Assistant and smoothed
+  - platform: a0221at
+    id: distance_raw
+    internal: true
+    update_interval: 1s
+    filters:
+      - median: 5
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 2
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: tank_level
+            # 2 m deep tank: 0 % when the sensor reads 2 m
+            state: !lambda "return clamp<float>((2000.0f - x) / 2000.0f * 100.0f, 0.0f, 100.0f);"
+        - sensor.template.publish:
+            id: distance_cm
+            state: !lambda "return x / 10.0f;"
+
+  # Distance in centimetres, exposed to Home Assistant
+  - platform: template
+    id: distance_cm
+    name: "Distance"
+    unit_of_measurement: "cm"
+    accuracy_decimals: 1
+    state_class: measurement
+
+  # Tank fill level, derived on-device
+  - platform: template
+    id: tank_level
+    name: "Tank level"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement

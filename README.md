@@ -23,7 +23,14 @@ This project is a **continuation of the original `a0221at` ESPHome integration b
 
 Flamedodger's component was the first to make the A0221AT usable with ESPHome at all: at a time when ESPHome only supported the auto-output variant (`a02yyuw`), the original project worked out the manual-UART trigger approach, got real sensor frames parsed and published to Home Assistant, and documented the whole tank-level use case — including hardware details like the sensor running reliably at 3.3 V on ESP32 despite its 5 V rating. It was published under MIT, which is what makes this rewrite possible.
 
-This repository keeps that architecture (trigger on `update()`, parse on `loop()`, millimetre frames) and hardens it against the manufacturer's official interface specification. Nothing here would exist without the original. It was made with AI.
+This repository keeps that architecture (trigger on `update()`, parse on `loop()`, millimetre frames) and hardens it against the manufacturer's official interface specification. Nothing here would exist without the original.
+
+**What v1 got right (and v2 keeps):**
+
+- the trigger-based polling model for the manual-UART variant, when no built-in platform fitted
+- the tank-level / fill-percentage use case, with Home Assistant telemetry
+- the practical hardware notes: 3.3 V operation on ESP32, "avoid the PWM version, avoid the auto-UART version"
+- MIT licensing
 
 **What v2 changes:**
 
@@ -37,7 +44,7 @@ This repository keeps that architecture (trigger on `update()`, parse on `loop()
 | UART validation | none (a wrong baud rate failed silently) | `uart.final_validate_device_schema()` |
 | Output unit | cm | mm (protocol-native) |
 | `dump_config()` | missing | `LOG_SENSOR` + boot-time interval check |
-| Code layout | `const.py` + `uart_handler.py` modules | consolidated into one component pair (`.h` / `.cpp`) |
+| Code layout | `a0221at_sensor.cpp/.h` + committed `__pycache__/` | consolidated into one component pair (`.h` / `.cpp`) |
 
 ## Features
 
@@ -205,11 +212,17 @@ The UART lines are 3.3 V TTL and connect directly to ESP32/ESP8266/RP2040 GPIOs;
 Repository layout:
 
 ```
-components/a0221at/
-├── __init__.py      # domain + code owners
-├── sensor.py        # config schema, UART validation, codegen
-├── a0221at.h        # component class
-└── a0221at.cpp      # trigger + frame parser implementation
+a0221at/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── a0221at-example.yaml
+└── components/
+    └── a0221at/
+        ├── __init__.py      # domain + code owners
+        ├── sensor.py        # config schema, UART validation, codegen
+        ├── a0221at.h        # component class
+        └── a0221at.cpp      # trigger + frame parser implementation
 ```
 
 </details>
