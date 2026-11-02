@@ -1,3 +1,2 @@
-from .sensor import A0221ATSensor
-
-
+CODEOWNERS = ["@LePouet"]
+DOMAIN = "a0221at"
